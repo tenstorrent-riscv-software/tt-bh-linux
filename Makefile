@@ -136,12 +136,12 @@ ssh:
 # 	# Kill any existing sessions named connect_all
 # 	tmux has-session -t "$(SESSION)" 2>/dev/null && tmux kill-session -t "$(SESSION)" || true
 
-# 	tmux new-session  -d -s "$(SESSION)" './console/tt-bh-linux --ttdevice $(TTDEVICE) --l2cpu 0' 	# pane 0
-# 	tmux split-window -h -t "$(SESSION)":0 './console/tt-bh-linux --ttdevice $(TTDEVICE) --l2cpu 1' 	# pane 1 (right)
+# 	tmux new-session  -d -s "$(SESSION)" './console/tt-bh-linux --ttdevice $(TTDEVICE) --l2cpu 0 --disk $(DISK_IMAGE)' 	# pane 0
+# 	tmux split-window -h -t "$(SESSION)":0 './console/tt-bh-linux --ttdevice $(TTDEVICE) --l2cpu 1 --disk $(DISK_IMAGE)' 	# pane 1 (right)
 # 	tmux select-pane   -t "$(SESSION)":0.0 									# back to pane 0
-# 	tmux split-window -v -t "$(SESSION)":0 './console/tt-bh-linux --ttdevice $(TTDEVICE) --l2cpu 2' 	# pane 2 (bottom-left)
+# 	tmux split-window -v -t "$(SESSION)":0 './console/tt-bh-linux --ttdevice $(TTDEVICE) --l2cpu 2 --disk $(DISK_IMAGE)' 	# pane 2 (bottom-left)
 # 	tmux select-pane   -t "$(SESSION)":0.1 									# go to pane 1
-# 	tmux split-window -v -t "$(SESSION)":0 './console/tt-bh-linux --ttdevice $(TTDEVICE) --l2cpu 3' 	# pane 3 (bottom-right)
+# 	tmux split-window -v -t "$(SESSION)":0 './console/tt-bh-linux --ttdevice $(TTDEVICE) --l2cpu 3 --disk $(DISK_IMAGE)' 	# pane 3 (bottom-right)
 # 	tmux select-layout -t "$(SESSION)":0 tiled 								# ensure 2x2 grid
 
 # 	# If we're already inside a tmux session, we need to use switch-client

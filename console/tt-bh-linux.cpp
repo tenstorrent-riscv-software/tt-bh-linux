@@ -54,7 +54,7 @@ void network_main(int ttdevice, int l2cpu, std::mutex& interrupt_register_lock, 
 
 int main(int argc, char **argv){
     int l2cpu=0;
-    std::string disk_image_path = "rootfs.ext4";
+    std::string disk_image_path = "";
     std::string cloud_init_path = "";
     int ttdevice = 0;
 
@@ -109,7 +109,9 @@ int main(int argc, char **argv){
 
   std::vector<std::thread> threads;
   threads.emplace_back(console_main, ttdevice,  l2cpu);
-  threads.emplace_back(disk_main, ttdevice, l2cpu, std::ref(interrupt_register_lock), 33, 2ULL*1024*1024, disk_image_path);
+  if (!disk_image_path.empty()) {
+    threads.emplace_back(disk_main, ttdevice, l2cpu, std::ref(interrupt_register_lock), 33, 2ULL*1024*1024, disk_image_path);
+  }
   threads.emplace_back(network_main, ttdevice, l2cpu, std::ref(interrupt_register_lock), 32, 4ULL*1024*1024);
   if (!cloud_init_path.empty()) {
     threads.emplace_back(disk_main, ttdevice, l2cpu, std::ref(interrupt_register_lock), 31, 6ULL*1024*1024, cloud_init_path);
