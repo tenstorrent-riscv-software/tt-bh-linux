@@ -3,7 +3,9 @@
 
 #include <fcntl.h>
 #include <cassert>
+#include <iostream>
 #include <sstream>
+#include <stdexcept>
 #include <sys/mman.h>
 #include <time.h>
 #include "l2cpu.h"
@@ -55,10 +57,29 @@ L2CPU::L2CPU(int idx, int card_idx)
     coordinates = l2cpu_tile_mapping.at(idx);
     memory_size = l2cpu_memory_size_mapping.at(idx);
 
-    memory = reinterpret_cast<uint8_t*>(mmap(nullptr, (2ULL<<32), PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0));
+    // Try to map the two 4G memory windows; if either fails, warn and continue
+    // without them instead of crashing.
+    try {
+        memory = reinterpret_cast<uint8_t*>(mmap(nullptr, (2ULL<<32), PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0));
+        if (memory == MAP_FAILED) {
+            memory = nullptr;
+            throw std::runtime_error("mmap of 8G L2CPU memory region failed");
+        }
 
-    first = std::make_unique<TlbWindow4G>(fd, coordinates.x, coordinates.y, 0x4000'0000'0000ULL, memory, true);
-    second = std::make_unique<TlbWindow4G>(fd, coordinates.x, coordinates.y, 0x4001'0000'0000ULL, memory+(1ULL<<32), true);
+        first = std::make_unique<TlbWindow4G>(fd, coordinates.x, coordinates.y, 0x4000'0000'0000ULL, memory, true);
+        second = std::make_unique<TlbWindow4G>(fd, coordinates.x, coordinates.y, 0x4001'0000'0000ULL, memory+(1ULL<<32), true);
+    } catch (const std::exception &e) {
+        std::cerr << "Warning: could not allocate first/second TLB windows for L2CPU " << idx
+                  << ": " << e.what() << "\nContinuing without them. Virtio functionality won't work." << std::endl;
+
+        // Unwind anything that did succeed
+        second.reset();
+        first.reset();
+        if (memory != nullptr) {
+            munmap(memory, 2ULL<<32);
+            memory = nullptr;
+        }
+    }
 }
 
 uint64_t L2CPU::get_starting_address(){
@@ -98,6 +119,9 @@ std::unique_ptr<TlbWindow2M> L2CPU::get_persistent_2M_tlb_window(uint64_t addr){
 
 // Returns the starting address of the L2CPU's memory
 uint8_t* L2CPU::get_memory_ptr(){
+    if (memory == nullptr) {
+        return nullptr;  // 4G windows were never mapped
+    }
     return memory+(starting_address-0x4000'0000'0000ULL);
 }
 
@@ -176,7 +200,9 @@ void L2CPU::set_frequency(){
 
 L2CPU::~L2CPU() noexcept
 {
-    munmap(memory, 2ULL<<32);
+    if (memory != nullptr) {
+        munmap(memory, 2ULL<<32);
+    }
     close(fd);
 }
 

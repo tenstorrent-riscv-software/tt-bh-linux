@@ -22,7 +22,8 @@ class L2CPU
     // ptrs to first (0x4000'0000'0000) and second (0x4001'0000'0000) memory regions of L2CPU memory
     std::unique_ptr<TlbWindow4G> first, second;
     // ptr to 8G region that has the above 2 regions stacked together
-    uint8_t *memory;
+    // (nullptr if the first/second window allocation failed)
+    uint8_t *memory = nullptr;
 
     xy_t coordinates;
 
