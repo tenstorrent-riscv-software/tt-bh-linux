@@ -3,6 +3,7 @@
 
 #ifndef L2CPU_H
 #define L2CPU_H
+#include <cstdint>
 #include <vector>
 #include <memory>
 #include <map>
