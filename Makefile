@@ -112,19 +112,19 @@ help:
 # Boot one L2CPU in Blackhole RISC-V CPU
 boot: _need_linux _need_opensbi _need_dtb _need_rootfs _need_hosttool _need_python _need_luwen _need_ttkmd _need_pylibfdt
 	$(PYTHON) boot.py --boot --ttdevice $(TTDEVICE) --l2cpu $(L2CPU) --opensbi_bin $(OPENSBI) --opensbi_dst 0x400030000000 --rootfs_dst 0x4000e5000000 --kernel_bin $(KERNEL) --kernel_dst 0x400030200000 --dtb_bin $(DTB) --dtb_dst 0x400030100000
-	./console/tt-bh-linux --ttdevice $(TTDEVICE) --l2cpu $(L2CPU) --disk $(DISK_IMAGE)
+	./console/tt-bh-linux --ttdevice $(TTDEVICE) --l2cpu $(L2CPU) --disk $(DISK_IMAGE) --network
 
 # Boot one L2CPU in Blackhole RISC-V CPU into an initramfs specified by $(INITRAMFS)
 boot_initramfs: _need_linux _need_opensbi _need_dtb _need_rootfs _need_hosttool _need_python _need_luwen _need_ttkmd _need_pylibfdt
 	$(PYTHON) boot.py --boot --ttdevice $(TTDEVICE) --l2cpu $(L2CPU) --opensbi_bin $(OPENSBI) --opensbi_dst 0x400030000000 --rootfs_dst 0x4000e5000000 --kernel_bin $(KERNEL) --kernel_dst 0x400030200000 --dtb_bin $(DTB) --dtb_dst 0x400030100000 --boot_device initramfs --rootfs_bin $(INITRAMFS) $(DT_NO_VIRTIO_DEVICES) $(EXTRA_BOOTARGS)
-	./console/tt-bh-linux --ttdevice $(TTDEVICE) --l2cpu $(L2CPU) --disk $(DISK_IMAGE)
+	./console/tt-bh-linux --ttdevice $(TTDEVICE) --l2cpu $(L2CPU) --disk $(DISK_IMAGE) --network
 
 # boot_all: _need_linux _need_opensbi _need_dtb _need_dtb_all _need_rootfs _need_hosttool _need_python _need_luwen _need_ttkmd _need_pylibfdt
 # 	$(PYTHON) boot.py --boot --ttdevice $(TTDEVICE) --l2cpu 0 1 2 3 --opensbi_bin fw_jump.bin --opensbi_dst 0x400100000000 0x400100000000 0x400100000000 0x400180000000 --rootfs_dst 0x400165000000 0x400165000000 0x400165000000 0x4001e5000000 --kernel_bin Image --kernel_dst 0x400100200000 0x400100200000 0x400100200000 0x400180200000 --dtb_bin blackhole-card.dtb blackhole-card.dtb blackhole-card2.dtb blackhole-card3.dtb --dtb_dst 0x400100100000 0x400100100000 0x400100100000 0x400180100000 --boot_device initramfs --rootfs_bin $(INITRAMFS)
 
 # Connect to console (requires a booted RISC-V)
 connect: _need_hosttool _need_ttkmd
-	./console/tt-bh-linux --ttdevice $(TTDEVICE) --l2cpu $(L2CPU) --disk $(DISK_IMAGE)
+	./console/tt-bh-linux --ttdevice $(TTDEVICE) --l2cpu $(L2CPU) --disk $(DISK_IMAGE) --network
 
 # Connect over SSH (requires a booted RISC-V)
 ssh:
@@ -136,12 +136,12 @@ ssh:
 # 	# Kill any existing sessions named connect_all
 # 	tmux has-session -t "$(SESSION)" 2>/dev/null && tmux kill-session -t "$(SESSION)" || true
 
-# 	tmux new-session  -d -s "$(SESSION)" './console/tt-bh-linux --ttdevice $(TTDEVICE) --l2cpu 0' 	# pane 0
-# 	tmux split-window -h -t "$(SESSION)":0 './console/tt-bh-linux --ttdevice $(TTDEVICE) --l2cpu 1' 	# pane 1 (right)
+# 	tmux new-session  -d -s "$(SESSION)" './console/tt-bh-linux --ttdevice $(TTDEVICE) --l2cpu 0 --disk $(DISK_IMAGE)' 	# pane 0
+# 	tmux split-window -h -t "$(SESSION)":0 './console/tt-bh-linux --ttdevice $(TTDEVICE) --l2cpu 1 --disk $(DISK_IMAGE)' 	# pane 1 (right)
 # 	tmux select-pane   -t "$(SESSION)":0.0 									# back to pane 0
-# 	tmux split-window -v -t "$(SESSION)":0 './console/tt-bh-linux --ttdevice $(TTDEVICE) --l2cpu 2' 	# pane 2 (bottom-left)
+# 	tmux split-window -v -t "$(SESSION)":0 './console/tt-bh-linux --ttdevice $(TTDEVICE) --l2cpu 2 --disk $(DISK_IMAGE)' 	# pane 2 (bottom-left)
 # 	tmux select-pane   -t "$(SESSION)":0.1 									# go to pane 1
-# 	tmux split-window -v -t "$(SESSION)":0 './console/tt-bh-linux --ttdevice $(TTDEVICE) --l2cpu 3' 	# pane 3 (bottom-right)
+# 	tmux split-window -v -t "$(SESSION)":0 './console/tt-bh-linux --ttdevice $(TTDEVICE) --l2cpu 3 --disk $(DISK_IMAGE)' 	# pane 3 (bottom-right)
 # 	tmux select-layout -t "$(SESSION)":0 tiled 								# ensure 2x2 grid
 
 # 	# If we're already inside a tmux session, we need to use switch-client
@@ -157,7 +157,7 @@ user-data.img: user-data.yaml _need_cloud_image_utils
 # Boot with cloud-init image attached
 boot_cloud_init: _need_linux _need_opensbi _need_dtb _need_rootfs _need_hosttool _need_python _need_luwen _need_ttkmd _need_pylibfdt user-data.img
 	$(PYTHON) boot.py --boot --ttdevice $(TTDEVICE) --l2cpu $(L2CPU) --opensbi_bin $(OPENSBI) --opensbi_dst 0x400030000000 --rootfs_dst 0x4000e5000000 --kernel_bin $(KERNEL) --kernel_dst 0x400030200000 --dtb_bin $(DTB) --dtb_dst 0x400030100000
-	./console/tt-bh-linux --ttdevice $(TTDEVICE) --l2cpu $(L2CPU) --disk $(DISK_IMAGE) --cloud-init user-data.img
+	./console/tt-bh-linux --ttdevice $(TTDEVICE) --l2cpu $(L2CPU) --disk $(DISK_IMAGE) --cloud-init user-data.img --network
 
 #################################
 # Recipes that build things

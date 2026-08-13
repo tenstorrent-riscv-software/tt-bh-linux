@@ -4,6 +4,7 @@
 #ifndef TLB_H
 #define TLB_H
 #include <unistd.h>
+#include <cstdint>
 #include <iostream>
 #include <memory>
 #include <cassert>
