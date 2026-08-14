@@ -45,6 +45,10 @@ public:
 
     uint32_t read32(uint64_t addr);
 
+    // Bulk write: walks the buffer, mapping a fresh 2M TLB window per chunk
+    // (buf.size() must be a multiple of 4)
+    void write(uint64_t addr, const std::vector<uint8_t>& buf);
+
     ~L2CPU() noexcept;
 
 };

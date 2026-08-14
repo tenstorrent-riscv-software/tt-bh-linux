@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include <fcntl.h>
+#include <algorithm>
 #include <cassert>
+#include <cstring>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
@@ -105,6 +107,30 @@ void L2CPU::write32(uint64_t addr, uint32_t value) {
 uint32_t L2CPU::read32(uint64_t addr) {
     TlbWindow2M temporary_window(fd, coordinates.x, coordinates.y, addr);
     return temporary_window.read32(0);
+}
+
+/*
+Bulk payload write (opensbi/kernel/dtb/rootfs): each 2M window maps the 2M-aligned
+region containing the current address; when the write crosses a 2M boundary the old
+window is dropped and a new one is mapped. buf is expected to be padded to a multiple
+of 4 (read_bin_file does this).
+*/
+void L2CPU::write(uint64_t addr, const std::vector<uint8_t>& buf) {
+    assert(buf.size() % 4 == 0);
+
+    size_t done = 0;
+    while (done < buf.size()) {
+        uint64_t cur = addr + done;
+        TlbWindow2M window(fd, coordinates.x, coordinates.y, cur);
+
+        size_t chunk = std::min<size_t>(TWO_MEG - (cur & (TWO_MEG - 1)), buf.size() - done);
+        for (size_t i = 0; i < chunk; i += 4) {
+            uint32_t word;
+            memcpy(&word, buf.data() + done + i, 4);
+            window.write32(i, word);
+        }
+        done += chunk;
+    }
 }
 
 /*
