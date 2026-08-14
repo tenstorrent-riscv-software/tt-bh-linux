@@ -110,17 +110,17 @@ help:
 # Recipes that run things
 
 # Boot one L2CPU in Blackhole RISC-V CPU
-boot: _need_linux _need_opensbi _need_dtb _need_rootfs _need_hosttool _need_python _need_luwen _need_ttkmd _need_pylibfdt
-	$(PYTHON) boot.py --boot --ttdevice $(TTDEVICE) --l2cpu $(L2CPU) --opensbi_bin $(OPENSBI) --opensbi_dst 0x400030000000 --rootfs_dst 0x4000e5000000 --kernel_bin $(KERNEL) --kernel_dst 0x400030200000 --dtb_bin $(DTB) --dtb_dst 0x400030100000
+boot: _need_linux _need_opensbi _need_dtb _need_rootfs _need_hosttool _need_ttkmd
+	./console/boot --boot --ttdevice $(TTDEVICE) --l2cpu $(L2CPU) --opensbi_bin $(OPENSBI) --opensbi_dst 0x400030000000 --rootfs_dst 0x4000e5000000 --kernel_bin $(KERNEL) --kernel_dst 0x400030200000 --dtb_bin $(DTB) --dtb_dst 0x400030100000
 	./console/tt-bh-linux --ttdevice $(TTDEVICE) --l2cpu $(L2CPU) --disk $(DISK_IMAGE) --network
 
 # Boot one L2CPU in Blackhole RISC-V CPU into an initramfs specified by $(INITRAMFS)
-boot_initramfs: _need_linux _need_opensbi _need_dtb _need_rootfs _need_hosttool _need_python _need_luwen _need_ttkmd _need_pylibfdt
-	$(PYTHON) boot.py --boot --ttdevice $(TTDEVICE) --l2cpu $(L2CPU) --opensbi_bin $(OPENSBI) --opensbi_dst 0x400030000000 --rootfs_dst 0x4000e5000000 --kernel_bin $(KERNEL) --kernel_dst 0x400030200000 --dtb_bin $(DTB) --dtb_dst 0x400030100000 --boot_device initramfs --rootfs_bin $(INITRAMFS) $(DT_NO_VIRTIO_DEVICES) $(EXTRA_BOOTARGS)
+boot_initramfs: _need_linux _need_opensbi _need_dtb _need_rootfs _need_hosttool _need_ttkmd
+	./console/boot --boot --ttdevice $(TTDEVICE) --l2cpu $(L2CPU) --opensbi_bin $(OPENSBI) --opensbi_dst 0x400030000000 --rootfs_dst 0x4000e5000000 --kernel_bin $(KERNEL) --kernel_dst 0x400030200000 --dtb_bin $(DTB) --dtb_dst 0x400030100000 --boot_device initramfs --rootfs_bin $(INITRAMFS) $(DT_NO_VIRTIO_DEVICES) $(EXTRA_BOOTARGS)
 	./console/tt-bh-linux --ttdevice $(TTDEVICE) --l2cpu $(L2CPU) --disk $(DISK_IMAGE) --network
 
-# boot_all: _need_linux _need_opensbi _need_dtb _need_dtb_all _need_rootfs _need_hosttool _need_python _need_luwen _need_ttkmd _need_pylibfdt
-# 	$(PYTHON) boot.py --boot --ttdevice $(TTDEVICE) --l2cpu 0 1 2 3 --opensbi_bin fw_jump.bin --opensbi_dst 0x400100000000 0x400100000000 0x400100000000 0x400180000000 --rootfs_dst 0x400165000000 0x400165000000 0x400165000000 0x4001e5000000 --kernel_bin Image --kernel_dst 0x400100200000 0x400100200000 0x400100200000 0x400180200000 --dtb_bin blackhole-card.dtb blackhole-card.dtb blackhole-card2.dtb blackhole-card3.dtb --dtb_dst 0x400100100000 0x400100100000 0x400100100000 0x400180100000 --boot_device initramfs --rootfs_bin $(INITRAMFS)
+# boot_all: _need_linux _need_opensbi _need_dtb _need_dtb_all _need_rootfs _need_hosttool _need_ttkmd
+# 	./console/boot --boot --ttdevice $(TTDEVICE) --l2cpu 0 1 2 3 --opensbi_bin fw_jump.bin --opensbi_dst 0x400100000000 0x400100000000 0x400100000000 0x400180000000 --rootfs_dst 0x400165000000 0x400165000000 0x400165000000 0x4001e5000000 --kernel_bin Image --kernel_dst 0x400100200000 0x400100200000 0x400100200000 0x400180200000 --dtb_bin blackhole-card.dtb blackhole-card.dtb blackhole-card2.dtb blackhole-card3.dtb --dtb_dst 0x400100100000 0x400100100000 0x400100100000 0x400180100000 --boot_device initramfs --rootfs_bin $(INITRAMFS)
 
 # Connect to console (requires a booted RISC-V)
 connect: _need_hosttool _need_ttkmd
@@ -155,8 +155,8 @@ user-data.img: user-data.yaml _need_cloud_image_utils
 	cloud-localds -d raw user-data.img  user-data.yaml
 
 # Boot with cloud-init image attached
-boot_cloud_init: _need_linux _need_opensbi _need_dtb _need_rootfs _need_hosttool _need_python _need_luwen _need_ttkmd _need_pylibfdt user-data.img
-	$(PYTHON) boot.py --boot --ttdevice $(TTDEVICE) --l2cpu $(L2CPU) --opensbi_bin $(OPENSBI) --opensbi_dst 0x400030000000 --rootfs_dst 0x4000e5000000 --kernel_bin $(KERNEL) --kernel_dst 0x400030200000 --dtb_bin $(DTB) --dtb_dst 0x400030100000
+boot_cloud_init: _need_linux _need_opensbi _need_dtb _need_rootfs _need_hosttool _need_ttkmd user-data.img
+	./console/boot --boot --ttdevice $(TTDEVICE) --l2cpu $(L2CPU) --opensbi_bin $(OPENSBI) --opensbi_dst 0x400030000000 --rootfs_dst 0x4000e5000000 --kernel_bin $(KERNEL) --kernel_dst 0x400030200000 --dtb_bin $(DTB) --dtb_dst 0x400030100000
 	./console/tt-bh-linux --ttdevice $(TTDEVICE) --l2cpu $(L2CPU) --disk $(DISK_IMAGE) --cloud-init user-data.img --network
 
 #################################
@@ -205,7 +205,7 @@ build_opensbi: _need_riscv64_toolchain _need_gcc _need_python _need_opensbi_tree
 	ln -f opensbi/build/platform/generic/firmware/fw_jump.bin fw_jump.bin
 
 # Build tt-bh-linux
-build_hosttool: _need_gcc _need_libvdeslirp
+build_hosttool: _need_gcc _need_libvdeslirp _need_libfdt
 	$(MAKE) -C console -j $(nproc) $(quiet_make)
 
 # Generate a SSH key and add it to the image
@@ -240,7 +240,7 @@ clean_opensbi:
 # Clean host tool tree and remove binary
 clean_hosttool:
 	if [ -d console ]; then $(MAKE) -C console -j $(nproc) $(quiet_make) clean; fi
-	rm -f console/tt-bh-linux
+	rm -f console/tt-bh-linux console/boot
 
 # Clean cloned trees
 clean_clones:
@@ -286,7 +286,7 @@ install_tool_pkgs:
 
 # Install libraries for compiling the host tool and modifying disk images
 install_hosttool_pkgs:
-	$(call install,libvdeslirp-dev libslirp-dev unzip e2tools tmux cloud-image-utils)
+	$(call install,libvdeslirp-dev libslirp-dev libfdt-dev unzip e2tools tmux cloud-image-utils)
 
 install_tt_installer: _need_tt_installer
 	TT_MODE_NON_INTERACTIVE=0 TT_SKIP_INSTALL_HUGEPAGES=0 TT_SKIP_UPDATE_FIRMWARE=0 TT_SKIP_INSTALL_PODMAN=0 TT_SKIP_INSTALL_METALLIUM_CONTAINER=0 TT_REBOOT_OPTION=2 ./tt-installer-v1.1.0.sh
@@ -377,6 +377,7 @@ _need_rootfs:
 
 _need_hosttool:
 	$(call _need_file,console/tt-bh-linux,build,build_hosttool)
+	$(call _need_file,console/boot,build,build_hosttool)
 
 _need_ttkmd:
 	$(call _need_file,/dev/tenstorrent/0,install,install_tt_installer)
@@ -429,6 +430,9 @@ _need_tmux:
 
 _need_libvdeslirp:
 	$(call _need_file,/usr/include/slirp/libvdeslirp.h,install,install_hosttool_pkgs)
+
+_need_libfdt:
+	$(call _need_file,/usr/include/libfdt.h,install,install_hosttool_pkgs)
 
 _need_qemu_img:
 	$(call _need_prog,qemu-img,install,install_tool_pkgs)
