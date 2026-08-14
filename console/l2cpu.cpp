@@ -69,9 +69,7 @@ L2CPU::L2CPU(int idx, int card_idx)
         first = std::make_unique<TlbWindow4G>(fd, coordinates.x, coordinates.y, 0x4000'0000'0000ULL, memory, true);
         second = std::make_unique<TlbWindow4G>(fd, coordinates.x, coordinates.y, 0x4001'0000'0000ULL, memory+(1ULL<<32), true);
     } catch (const std::exception &e) {
-        std::cerr << "Warning: could not allocate first/second TLB windows for L2CPU " << idx
-                  << ": " << e.what() << "\nContinuing without them. Virtio functionality won't work." << std::endl;
-
+        // Virtio code errors out later via get_memory_ptr() == nullptr
         // Unwind anything that did succeed
         second.reset();
         first.reset();
