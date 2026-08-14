@@ -109,6 +109,11 @@ public:
         mmio_base = reinterpret_cast<uint8_t*>(window->get_window());
 
         memory = l2cpu.get_memory_ptr();
+        if (memory == nullptr) {
+            fprintf(stderr, "Error: L2CPU 4G TLB windows unavailable (get_memory_ptr returned null).\n"
+                    "Virtio cannot run without DRAM access; check TLB allocation (dmesg) and TLB availability after reset.\n");
+            exit(1);
+        }
 
         // TODO: Check if (interrupt_number-5) is in valid 
         // range, and adjust which register to use accordingly
